@@ -1,25 +1,37 @@
-import { readBody } from 'h3';
-import pdfParse from 'pdf-parse';
+import { readMultipartFormData, readBody, getRequestHeader } from 'h3';
 import { useLLM, MOCK_STUDENTS } from '../utils/llm';
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const { fileContent, fileType, fileName } = body;
-
   let text = "";
+  let fileName = "Upload";
 
-  // 1. Parse File Content
-  if (fileType === 'application/pdf') {
-    // For a real file upload, we'd need to handle the buffer. 
-    // Since this is a simple JSON post for now, we assume base64 or raw text if possible.
-    // For simplicity in this demo, we'll assume the frontend extracts text or sends raw string.
-    // If we really need PDF parsing on server, we need multipart form data.
-    // Let's stick to text-based extraction on client for maximum speed if possible, 
-    // BUT if we receive raw buffer we can parse.
-    // Re-evaluating: Simplest is to assume text is sent. 
-    text = "Error: PDF parsing requires multipart upload. Please copy-paste text for this demo.";
+  // Check for multipart form data (file upload)
+  const contentType = getRequestHeader(event, 'content-type');
+
+  if (contentType?.includes('multipart/form-data')) {
+    const body = await readMultipartFormData(event);
+    const filePart = body?.find(part => part.name === 'notes');
+
+    if (filePart) {
+      if (filePart.type === 'application/pdf') {
+        try {
+          const data = await pdfParse(filePart.data);
+          text = data.text;
+        } catch (e) {
+          console.error("PDF Parse Error", e);
+          text = "Error parsing PDF.";
+        }
+      } else {
+        // Assume text/plain or markdown
+        text = filePart.data.toString();
+      }
+      fileName = filePart.filename || fileName;
+    }
   } else {
-    text = fileContent;
+    // Fallback for simple JSON text input
+    const body = await readBody(event);
+    text = body.notes || "";
+    fileName = body.fileName || fileName;
   }
 
   // If text is empty or too short, return mock data
@@ -41,7 +53,7 @@ export default defineEventHandler(async (event) => {
           role: "system",
           content: `You are an expert educational simulator. 
           Analyze the provided notes and identify the core topic.
-          Then, generate 3 distinct 'Student Personas'. 
+          Then, generate 5 distinct 'Student Personas'. 
           Each student must have:
           - A Name (Use realistic, diverse full names, e.g., 'Sarah Chen', 'Marcus Johnson', 'Elena Rodriguez'. Do NOT use puns or thematic nicknames.)
           - A Persona (learning style description - keep this internal, it won't be shown to the user but defines behavior)

@@ -23,13 +23,18 @@ export default defineEventHandler(async (event) => {
           - If the explanation is vague: +0-5 points.
           - If the explanation is confusing: -5 points.
           
-          Generate a SHORT (1-2 sentences) response for each student.
+          Generate a response for each student.
+          - Structure: "I understand that [concept]... but [question/reaction]". (Preamble is MANDATORY).
           - If score < 50: Ask a question revealing their misconception.
           - If score > 80: Express clarity and excitement.
-          - Only 1 or 2 students should speak per turn to avoid noise (use 'shouldSpeak': true/false).
+          - Only ONE student should ask a question per turn to keep it focused. 
+          - Set 'shouldSpeak': true for that SINGLE student, and false for others.
           
+          3. If the teacher's explanation introduces a NEW concept effectively, extract a concise title (3-5 words) for it. If not, set 'taught_concept' to null.
+
           Return JSON:
           {
+            "taught_concept": "Concept Title" | null,
             "students": [
               { "id": "...", "understanding": 55, "response": "But wait...", "shouldSpeak": true }
             ]

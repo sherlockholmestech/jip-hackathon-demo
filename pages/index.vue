@@ -21,14 +21,14 @@
           type="file" 
           ref="fileInput" 
           class="hidden" 
-          accept=".txt,.md,.pdf"
+          accept=".txt,.md"
           @change="handleFileSelect"
         />
         
         <div v-if="!isProcessing" class="space-y-4">
           <div class="text-6xl">📄</div>
           <h3 class="text-xl font-semibold">Drop your notes here</h3>
-          <p class="text-sm text-slate-500">Supports .txt, .md, .pdf</p>
+          <p class="text-sm text-slate-500">Supports .txt, .md</p>
         </div>
 
         <div v-else class="space-y-4">
@@ -62,16 +62,15 @@ const triggerFileInput = () => fileInput.value?.click();
 const processFile = async (file: File) => {
   isProcessing.value = true;
   
-  // Read file as text (simple version)
+  // Simple text read on client
   const text = await file.text();
   
   try {
     const { data } = await useFetch('/api/init', {
       method: 'POST',
       body: { 
-        fileContent: text,
-        fileName: file.name,
-        fileType: file.type
+        notes: text,
+        fileName: file.name
       }
     });
     

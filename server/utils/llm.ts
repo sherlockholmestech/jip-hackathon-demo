@@ -38,5 +38,21 @@ export const MOCK_STUDENTS = [
     misconception: "Believes open source code is insecure because anyone can read it.",
     understanding: 15,
     avatar: "🕵️"
+  },
+  {
+    id: 's4',
+    name: "Curious George",
+    persona: "Asks endless 'why' questions to get to the root.",
+    misconception: "Thinks internet latency is caused by wind resistance.",
+    understanding: 5,
+    avatar: "🐒"
+  },
+  {
+    id: 's5',
+    name: "Practical Patty",
+    persona: "Only cares about how to use the concept in real life.",
+    misconception: "Believes algorithms are only for mathematicians, not programmers.",
+    understanding: 25,
+    avatar: "🛠️"
   }
 ];
