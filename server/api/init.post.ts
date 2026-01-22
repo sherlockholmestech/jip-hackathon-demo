@@ -1,38 +1,10 @@
-import { readMultipartFormData, readBody, getRequestHeader } from 'h3';
+import { readBody } from 'h3';
 import { useLLM, MOCK_STUDENTS } from '../utils/llm';
 
 export default defineEventHandler(async (event) => {
-  let text = "";
-  let fileName = "Upload";
-
-  // Check for multipart form data (file upload)
-  const contentType = getRequestHeader(event, 'content-type');
-
-  if (contentType?.includes('multipart/form-data')) {
-    const body = await readMultipartFormData(event);
-    const filePart = body?.find(part => part.name === 'notes');
-
-    if (filePart) {
-      if (filePart.type === 'application/pdf') {
-        try {
-          const data = await pdfParse(filePart.data);
-          text = data.text;
-        } catch (e) {
-          console.error("PDF Parse Error", e);
-          text = "Error parsing PDF.";
-        }
-      } else {
-        // Assume text/plain or markdown
-        text = filePart.data.toString();
-      }
-      fileName = filePart.filename || fileName;
-    }
-  } else {
-    // Fallback for simple JSON text input
-    const body = await readBody(event);
-    text = body.notes || "";
-    fileName = body.fileName || fileName;
-  }
+  const body = await readBody(event);
+  const text = body.notes || "";
+  const fileName = body.fileName || "Upload";
 
   // If text is empty or too short, return mock data
   if (!text || text.length < 10) {
@@ -47,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const response = await llm.chat.completions.create({
-      model: "gpt-4o", // Or generic model
+      model: "gpt-5-mini", // Optimized for speed/cost
       messages: [
         {
           role: "system",

@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const response = await llm.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
